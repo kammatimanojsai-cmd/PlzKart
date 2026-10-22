@@ -107,10 +107,32 @@ export function LogoutButton() {
 }
 
 function Field({ label, name, type = 'text', error, ...rest }) {
+  const isPassword = type === 'password';
+  const [shown, setShown] = useState(false);
+  const input = <input name={name} type={isPassword && shown ? 'text' : type} aria-invalid={!!error} {...rest} />;
   return (
     <label className="field">
       <span>{label}</span>
-      <input name={name} type={type} aria-invalid={!!error} {...rest} />
+      {isPassword ? (
+        <span className="pw-wrap">
+          {input}
+          <button
+            type="button"
+            className="pw-toggle"
+            aria-label={shown ? 'Hide password' : 'Show password'}
+            aria-pressed={shown}
+            title={shown ? 'Hide password' : 'Show password'}
+            data-testid="pw-toggle"
+            onClick={(e) => { e.preventDefault(); setShown((s) => !s); }}
+          >
+            {shown ? (
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A9.8 9.8 0 0112 5c5 0 9 4.5 10 7-.4 1-1.3 2.4-2.6 3.7M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7 1.7 0 3.2-.5 4.5-1.2" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>
+            )}
+          </button>
+        </span>
+      ) : input}
       {error && <small className="err">{error}</small>}
     </label>
   );
