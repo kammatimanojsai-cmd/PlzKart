@@ -1,6 +1,7 @@
 import { dbKind, one } from '@/lib/db';
 import { emailProvider } from '@/lib/email';
 import { json } from '@/lib/api';
+import { adminEmail, loginNoticesEnabled } from '@/lib/admin-notify';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +14,9 @@ export async function GET() {
       `SELECT kind, status, provider, LEFT(COALESCE(detail, ''), 160) AS detail, created_at
          FROM email_log ORDER BY id DESC LIMIT 1`
     );
-    return json({ ok: true, database: db, products: Number(p.n), emailProvider: emailProvider() || 'none', lastEmail: last });
+    return json({ ok: true, database: db, products: Number(p.n), emailProvider: emailProvider() || 'none',
+      adminNotifications: adminEmail() ? { registrations: true, logins: loginNoticesEnabled() } : 'off',
+      lastEmail: last });
   } catch (e) {
     return json({ ok: false, error: e.message }, 500);
   }
