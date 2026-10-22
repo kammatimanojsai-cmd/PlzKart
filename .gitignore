@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+.pglite/
+.env
+.env.*
+!.env.example
+*.log
+.vercel
+.DS_Store
