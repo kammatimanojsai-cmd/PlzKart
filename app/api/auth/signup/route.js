@@ -3,6 +3,7 @@ import { hashPassword, normalizeEmail, validateSignup, createSession, issueEmail
 import { sendEmail, verificationEmail, emailProvider } from '@/lib/email';
 import { baseUrl } from '@/lib/format';
 import { json, fail, readJson, handle } from '@/lib/api';
+import { notifyAdminOfSignup } from '@/lib/admin-notify';
 
 export const POST = handle(async (req) => {
   const body = await readJson(req);
@@ -19,6 +20,7 @@ export const POST = handle(async (req) => {
     [name, email, await hashPassword(body.password)]
   );
   await createSession(user.id);
+  notifyAdminOfSignup(user.id); // runs after the response; never blocks or fails the signup
 
   const token = await issueEmailToken(user.id, 'verify');
   const link = `${baseUrl(req)}/verify?token=${token}`;

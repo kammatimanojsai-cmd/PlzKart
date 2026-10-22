@@ -231,3 +231,10 @@ h2, .h2 { font-size: 1.35rem; margin: 0; }
   .line-total, .line-actions { grid-column: 2; }
   .auth { padding: 22px; }
 }
+
+/* privacy */
+.privacy-note a { color: var(--brand); }
+.prose { max-width: 720px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 32px; }
+.prose ul { padding-left: 20px; line-height: 1.7; }
+.prose .h3 { margin-top: 1.4rem; }
+@media (max-width: 680px) { .prose { padding: 20px; } }

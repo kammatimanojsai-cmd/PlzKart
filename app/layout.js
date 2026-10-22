@@ -27,6 +27,7 @@ export default function RootLayout({ children }) {
               <Link href="/shop?category=beauty">Beauty</Link>
               <Link href="/shop?category=perfumes">Perfumes</Link>
               <Link href="/orders">My orders</Link>
+              <Link href="/privacy">Privacy</Link>
             </nav>
           </div>
         </footer>

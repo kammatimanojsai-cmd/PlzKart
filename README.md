@@ -10,6 +10,8 @@ A full-stack e-commerce store built as a college project with **Next.js 15 (App 
 - Forgot-password flow with single-use, 1-hour email reset links
 - Email verification link and welcome email after verification
 - Order confirmation email
+- Admin email notifications for new registrations and successful logins (server-side, de-duplicated, never block auth, no secrets in the email)
+- Privacy page explaining stored data and owner notifications
 - Browse by gender / category, search, sort
 - Wishlist (add, remove, move to cart)
 - Shopping cart with quantity controls and free-shipping threshold
@@ -48,14 +50,16 @@ See `.env.example`.
 | `RESEND_API_KEY` + `EMAIL_FROM` | Send email through Resend |
 | `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASS` | Or send through SMTP (e.g. Gmail App Password) |
 | `APP_URL` | Optional base URL for email links |
+| `ADMIN_EMAIL` | Owner inbox for registration / login notices (unset = notices off) |
+| `ADMIN_NOTIFY_LOGINS` | Optional, `false` turns off login notices (registration notices stay on) |
 
 ## Tests
 
-`scripts/e2e.mjs` runs 18 end-to-end checks over HTTP (catalog, signup, verification + welcome email, login, wishlist, cart, checkout, order history, access control) with a built-in SMTP sink:
+`scripts/e2e.mjs` runs 20 end-to-end checks over HTTP (catalog, signup, verification + welcome email, admin notices, login, password reset, wishlist, cart, checkout, order history, access control) with a built-in SMTP sink:
 
 ```bash
 npm run build
-SMTP_HOST=127.0.0.1 SMTP_PORT=2525 SMTP_USER=test SMTP_PASS=test EMAIL_FROM="PlzKart <no-reply@plzkart.test>" npm start
+ADMIN_EMAIL=admin@plzkart.test SMTP_HOST=127.0.0.1 SMTP_PORT=2525 SMTP_USER=test SMTP_PASS=test EMAIL_FROM="PlzKart <no-reply@plzkart.test>" npm start
 npm run test:e2e
 ```
 

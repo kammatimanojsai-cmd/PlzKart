@@ -119,6 +119,22 @@ try {
     assert.equal(dup.status, 409);
   });
 
+  const ADMIN = process.env.E2E_ADMIN_EMAIL || 'admin@plzkart.test';
+  const adminMails = (kind) => inbox.filter((x) => x.to.text.includes(ADMIN) && x.text.includes(email) && (kind === 'signup' ? /registration/i.test(x.subject) : /login/i.test(x.subject)));
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  if (!SKIP_EMAIL) {
+    await step('admin gets one registration notice with name, email, time and no secrets', async () => {
+      const m = await waitFor(() => adminMails('signup')[0]);
+      assert.ok(m.text.includes('Test Student') && m.text.includes(email) && /Registered: .+IST/.test(m.text), m.text);
+      for (const secret of [password, 'token=', 'verify?', 'reset-password', 'plz_session']) {
+        assert.ok(!m.text.includes(secret) && !m.html.includes(secret), `admin email leaks "${secret}"`);
+      }
+      await sleep(1500);
+      assert.equal(adminMails('signup').length, 1, 'duplicate registration notice');
+    });
+  }
+
   await step('unverified user cannot check out', async () => {
     const r = await c.json('/api/checkout', { method: 'POST', body: {} });
     assert.equal(r.status, 403);
@@ -153,6 +169,20 @@ try {
     assert.equal(ok.ok, true);
     assert.ok(c.cookie);
   });
+
+  if (!SKIP_EMAIL) {
+    await step('admin login notice: only on success, no secrets, no duplicates on quick re-login', async () => {
+      const m = await waitFor(() => adminMails('login')[0]);
+      assert.ok(m.text.includes('Test Student') && m.text.includes(email) && /Signed in: .+IST/.test(m.text));
+      assert.ok(!m.text.includes(password) && !m.text.includes('wrongpass1') && !m.html.includes(password));
+      // the failed attempt above produced nothing; a second successful login right away is de-duplicated
+      await c.json('/api/auth/login', { method: 'POST', body: { email, password: 'wrongpass1' } });
+      const again = await c.json('/api/auth/login', { method: 'POST', body: { email, password } });
+      assert.equal(again.ok, true);
+      await sleep(2000);
+      assert.equal(adminMails('login').length, 1, `expected 1 login notice, got ${adminMails('login').length}`);
+    });
+  }
 
   if (!SKIP_EMAIL) {
     await step('forgot password: same answer for unknown email, reset email for real one', async () => {
