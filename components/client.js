@@ -240,3 +240,58 @@ export function CheckoutForm({ defaultName }) {
     </form>
   );
 }
+
+export function ForgotForm() {
+  const [msg, setMsg] = useState('');
+  const [devLink, setDevLink] = useState('');
+  const [busy, start] = useTransition();
+  return (
+    <form
+      className="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = Object.fromEntries(new FormData(e.currentTarget));
+        start(async () => {
+          const r = await post('/api/auth/forgot', fd);
+          setMsg(r.ok ? r.message : r.error);
+          if (r.devResetLink) setDevLink(r.devResetLink);
+        });
+      }}
+    >
+      <Field label="Email" name="email" type="email" autoComplete="email" required />
+      {msg && <p className="notice ok" data-testid="forgot-msg">{msg} Check your inbox and spam folder.</p>}
+      {devLink && <p className="small"><a href={devLink}>Developer reset link</a></p>}
+      <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Sending…' : 'Send reset link'}</button>
+    </form>
+  );
+}
+
+export function ResetForm({ token }) {
+  const [errors, setErrors] = useState({});
+  const [msg, setMsg] = useState('');
+  const [expired, setExpired] = useState(false);
+  const [busy, start] = useTransition();
+  const router = useRouter();
+  return (
+    <form
+      className="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = Object.fromEntries(new FormData(e.currentTarget));
+        if (fd.password !== fd.confirm) { setErrors({ confirm: 'Passwords do not match.' }); return; }
+        start(async () => {
+          const r = await post('/api/auth/reset', { token, password: fd.password });
+          if (!r.ok) { setErrors(r.errors || {}); setMsg(r.error); setExpired(!!r.expired); return; }
+          router.push('/account?reset=1');
+          router.refresh();
+        });
+      }}
+    >
+      <Field label="New password" name="password" type="password" autoComplete="new-password" required minLength={8}
+        placeholder="At least 8 characters, letters and numbers" error={errors.password} />
+      <Field label="Confirm new password" name="confirm" type="password" autoComplete="new-password" required error={errors.confirm} />
+      {msg && <p className="form-msg err">{msg} {expired && <a href="/forgot-password">Request a new link</a>}</p>}
+      <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Saving…' : 'Save new password'}</button>
+    </form>
+  );
+}

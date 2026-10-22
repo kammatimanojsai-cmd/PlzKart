@@ -12,6 +12,7 @@ const VERIFY_MSG = {
   expired: ['warn', 'That verification link has expired or was already used. Send a new one below.'],
   invalid: ['warn', 'That verification link is not valid. Send a new one below.'],
 };
+const RESET_MSG = ['ok', 'Your password has been changed and you are signed in.'];
 
 export default async function Account({ searchParams }) {
   const sp = await searchParams;
@@ -28,7 +29,7 @@ export default async function Account({ searchParams }) {
     redirect('/login?next=/account');
   }
   const c = await counts(user.id);
-  const v = VERIFY_MSG[sp.verify];
+  const v = sp.reset ? RESET_MSG : VERIFY_MSG[sp.verify];
   const dev = typeof sp.dev === 'string' && sp.dev.startsWith('http') && process.env.NODE_ENV !== 'production' ? sp.dev : null;
 
   return (

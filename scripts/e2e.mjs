@@ -154,6 +154,31 @@ try {
     assert.ok(c.cookie);
   });
 
+  if (!SKIP_EMAIL) {
+    await step('forgot password: same answer for unknown email, reset email for real one', async () => {
+      const unknown = await c.json('/api/auth/forgot', { method: 'POST', body: { email: 'nobody-here@example.com' } });
+      const known = await c.json('/api/auth/forgot', { method: 'POST', body: { email } });
+      assert.equal(unknown.message, known.message);
+      const m = await waitFor(() => inbox.find((x) => x.to.text.includes(email) && /Reset/.test(x.subject)));
+      const link = (m.text.match(/https?:\/\/\S+\/reset-password\?token=\S+/) || [])[0];
+      assert.ok(link, 'no reset link');
+      const token = new URL(link).searchParams.get('token');
+      const page = await c.html(`/reset-password?token=${token}`);
+      assert.equal(page.status, 200);
+      const weak = await c.json('/api/auth/reset', { method: 'POST', body: { token, password: 'short' } });
+      assert.equal(weak.status, 400);
+      const ok = await c.json('/api/auth/reset', { method: 'POST', body: { token, password: 'NewPass2026' } });
+      assert.equal(ok.ok, true, ok.error);
+      const reuse = await c.json('/api/auth/reset', { method: 'POST', body: { token, password: 'Another2026' } });
+      assert.equal(reuse.status, 400);
+      const fresh = new Client();
+      const old = await fresh.json('/api/auth/login', { method: 'POST', body: { email, password } });
+      assert.equal(old.status, 401, 'old password still works');
+      const neu = await fresh.json('/api/auth/login', { method: 'POST', body: { email, password: 'NewPass2026' } });
+      assert.equal(neu.ok, true);
+    });
+  }
+
   // product ids from page markup are not exposed, so look them up via the shop order (ids are seeded in catalog order)
   productIds = { shirt: 1, watch: 7, lipstick: 13, perfume: 19 };
 

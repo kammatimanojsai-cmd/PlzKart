@@ -7,6 +7,7 @@ A full-stack e-commerce store built as a college project with **Next.js 15 (App 
 ## Features
 
 - Email + password signup and login (bcrypt hashes, database-backed http-only session cookies)
+- Forgot-password flow with single-use, 1-hour email reset links
 - Email verification link and welcome email after verification
 - Order confirmation email
 - Browse by gender / category, search, sort
@@ -50,7 +51,7 @@ See `.env.example`.
 
 ## Tests
 
-`scripts/e2e.mjs` runs 17 end-to-end checks over HTTP (catalog, signup, verification + welcome email, login, wishlist, cart, checkout, order history, access control) with a built-in SMTP sink:
+`scripts/e2e.mjs` runs 18 end-to-end checks over HTTP (catalog, signup, verification + welcome email, login, wishlist, cart, checkout, order history, access control) with a built-in SMTP sink:
 
 ```bash
 npm run build
